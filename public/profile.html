@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Profile — Auth Server</title>
+  <meta name="description" content="Your profile">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+  <div class="card" id="profile-card" style="opacity: 0;">
+    <div class="profile-avatar" id="avatar"></div>
+    <p class="profile-username" id="username-display"></p>
+    <p class="profile-label">Authenticated User</p>
+
+    <div class="profile-info">
+      <div class="profile-info-row">
+        <span class="profile-info-key">Status</span>
+        <span class="profile-info-value"><span class="status-dot"></span>Active</span>
+      </div>
+      <div class="profile-info-row">
+        <span class="profile-info-key">Session</span>
+        <span class="profile-info-value">Secure (httpOnly cookie)</span>
+      </div>
+      <div class="profile-info-row">
+        <span class="profile-info-key">Browser</span>
+        <span class="profile-info-value" id="browser-display">—</span>
+      </div>
+    </div>
+
+    <form action="/api/logout" method="POST">
+      <button type="submit" class="btn btn-danger">Log Out</button>
+    </form>
+  </div>
+
+  <script>
+    // Fetch profile data from the API
+    fetch('/profile/data', {
+      headers: { 'Accept': 'application/json' },
+      credentials: 'same-origin'
+    })
+    .then(res => {
+      if (!res.ok) {
+        window.location.href = '/login?error=' + encodeURIComponent('Session expired. Please log in.');
+        return;
+      }
+      return res.json();
+    })
+    .then(data => {
+      if (!data) return;
+
+      const username = data.username;
+      document.getElementById('username-display').textContent = username;
+      document.getElementById('avatar').textContent = username.charAt(0).toUpperCase();
+      document.title = username + ' — Profile';
+
+      // Detect browser name from user agent
+      const ua = navigator.userAgent;
+      let browser = 'Unknown';
+      if (ua.includes('Firefox'))      browser = 'Firefox';
+      else if (ua.includes('Edg'))     browser = 'Edge';
+      else if (ua.includes('Chrome'))  browser = 'Chrome';
+      else if (ua.includes('Safari'))  browser = 'Safari';
+      document.getElementById('browser-display').textContent = browser;
+
+      // Show the card
+      const card = document.getElementById('profile-card');
+      card.style.opacity = '1';
+      card.style.animation = 'fadeIn 0.5s ease-out';
+    })
+    .catch(() => {
+      window.location.href = '/login?error=' + encodeURIComponent('Something went wrong.');
+    });
+  </script>
+</body>
+</html>
